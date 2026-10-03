@@ -87,7 +87,7 @@ private fun HomeContent(dockApps: List<LauncherApp>) {
             Text("02:00", color = Color.White, style = MaterialTheme.typography.displayMedium)
         }
         Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-            Text("Launcher 2.1.0", color = Color.White.copy(alpha = .45f))
+            Text("Launcher 2.1.1", color = Color.White.copy(alpha = .45f))
             Row(
                 Modifier.fillMaxWidth()
                     .background(Color.White.copy(alpha = .07f), RoundedCornerShape(24.dp))
@@ -109,41 +109,65 @@ private fun Drawer(apps: List<LauncherApp>, onClose: () -> Unit) {
 
     Column(
         Modifier.fillMaxSize()
-            .background(Color(0xFFF2F2F2))
+            .background(Color(0xFF101010))
             .pointerInput(Unit) {
                 var total = 0f
                 detectVerticalDragGestures(
                     onVerticalDrag = { _, drag -> total += drag },
                     onDragEnd = {
-                        if (total > 90f) onClose()
+                        if (total > 120f) onClose()
                         total = 0f
                     },
                     onDragCancel = { total = 0f }
                 )
             }
-            .padding(top = 42.dp, start = 18.dp, end = 18.dp)
+            .padding(top = 28.dp, start = 18.dp, end = 18.dp)
     ) {
+        Box(
+            Modifier.fillMaxWidth().padding(bottom = 18.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Box(
+                Modifier.width(42.dp).height(4.dp)
+                    .background(Color.White.copy(alpha = .28f), RoundedCornerShape(4.dp))
+            )
+        }
+
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
-                Text("Apps", style = MaterialTheme.typography.headlineMedium, color = Color.Black)
+                Text("APPLICATIONS", style = MaterialTheme.typography.titleLarge, color = Color.White)
                 Text(
                     "${filteredApps.size} applications",
                     style = MaterialTheme.typography.labelMedium,
-                    color = Color.Black.copy(alpha = .48f)
+                    color = Color.White.copy(alpha = .45f)
                 )
             }
-            TextButton(onClick = onClose) { Text("Close") }
+            TextButton(onClick = onClose) {
+                Text("CLOSE", color = Color.White.copy(alpha = .72f))
+            }
         }
-        Spacer(Modifier.height(10.dp))
+
+        Spacer(Modifier.height(12.dp))
+
         OutlinedTextField(
             value = query,
             onValueChange = { query = it },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
             shape = RoundedCornerShape(18.dp),
-            placeholder = { Text("Search apps") }
+            placeholder = { Text("Search applications", color = Color.White.copy(alpha = .4f)) },
+            textStyle = LocalTextStyle.current.copy(color = Color.White),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = Color.White.copy(alpha = .45f),
+                unfocusedBorderColor = Color.White.copy(alpha = .18f),
+                cursorColor = Color.White,
+                focusedContainerColor = Color.White.copy(alpha = .05f),
+                unfocusedContainerColor = Color.White.copy(alpha = .035f)
+            )
         )
-        Spacer(Modifier.height(12.dp))
+
+        Spacer(Modifier.height(14.dp))
+
         LazyVerticalGrid(
             columns = GridCells.Fixed(4),
             modifier = Modifier.fillMaxSize(),
@@ -152,7 +176,7 @@ private fun Drawer(apps: List<LauncherApp>, onClose: () -> Unit) {
             horizontalArrangement = Arrangement.spacedBy(2.dp)
         ) {
             items(filteredApps, key = { it.packageName }) { app ->
-                AppIcon(app, 58.dp, dark = true)
+                AppIcon(app, 58.dp)
             }
         }
     }
@@ -171,7 +195,12 @@ private fun AppIcon(app: LauncherApp, size: Dp, dark: Boolean = false) {
                 modifier = Modifier.size(size)
             )
         }
-        Text(app.label, color = if (dark) Color.Black else Color.White, maxLines = 1, style = MaterialTheme.typography.labelSmall)
+        Text(
+            app.label,
+            color = if (dark) Color.Black else Color.White,
+            maxLines = 1,
+            style = MaterialTheme.typography.labelSmall
+        )
     }
 }
 
