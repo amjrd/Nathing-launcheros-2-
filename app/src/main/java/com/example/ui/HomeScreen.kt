@@ -265,110 +265,68 @@ fun HomeScreen(
         .statusBarsPadding()
         .navigationBarsPadding()
     ) {
-      // Top Navigation / Glance Bar (With Swipe down for notifications)
+      // Minimal Nothing OS 5 style header: clean glyph mark + date + controls.
       AnimatedVisibility(
         visible = topBarVisible,
         enter = slideInVertically(initialOffsetY = { -it }) + fadeIn(),
         exit = slideOutVertically(targetOffsetY = { -it }) + fadeOut()
       ) {
-              Row(
-                modifier = Modifier
-                  .fillMaxWidth()
-                  .padding(horizontal = 16.dp, vertical = 12.dp)
-                  .pointerInput(settings.swipeDownNotifications) {
-                    if (settings.swipeDownNotifications) {
-                      detectVerticalDragGestures { _, dragAmount ->
-                        if (dragAmount > 70f) {
-                          onSwipeDown()
-                        }
-                      }
-                    }
-                  },
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-              ) {
-                Row(
-                  verticalAlignment = Alignment.CenterVertically,
-                  horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                  Box(
-                    modifier = Modifier
-                      .size(8.dp)
-                      .clip(CircleShape)
-                      .background(accentColor)
-                  )
-                  Text(
-                    text = "NOTHING",
-                    fontFamily = FontFamily.Monospace,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 13.sp,
-                    color = theme.textPrimary,
-                    letterSpacing = 2.sp
-                  )
-                }
-        
-                Row(
-                  verticalAlignment = Alignment.CenterVertically,
-                  horizontalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                  // Quick Day / Night Theme Toggle (Direct 1-tap switch between Image 3 Theme Jour and Image 2 Theme Nuit)
-                  IconButton(
-                    onClick = onToggleThemeMode,
-                    modifier = Modifier.testTag("home_theme_toggle_button")
-                  ) {
-                    Icon(
-                      imageVector = when (settings.themeMode) {
-                        LauncherThemeMode.DARK -> Icons.Default.DarkMode
-                        LauncherThemeMode.LIGHT -> Icons.Default.LightMode
-                        LauncherThemeMode.RETRO_PASTEL -> Icons.Default.Palette
-                        LauncherThemeMode.SYSTEM -> if (theme.isDark) Icons.Default.DarkMode else Icons.Default.LightMode
-                        LauncherThemeMode.ORIGINAL -> Icons.Default.DarkMode
-                        LauncherThemeMode.MONOCHROME_STUDIO -> Icons.Default.LightMode
-                        LauncherThemeMode.ATMOSPHERE_PASTEL -> Icons.Default.Palette
-                        LauncherThemeMode.GLYPH_RED -> Icons.Default.Palette
-                      },
-                      contentDescription = "Toggle Theme Jour / Nuit / Retro",
-                      tint = if (settings.themeMode != LauncherThemeMode.DARK) accentColor else theme.textSecondary,
-                      modifier = Modifier.size(20.dp)
-                    )
-                  }
-        
-                  IconButton(
-                    onClick = onDoubleTap,
-                    modifier = Modifier.testTag("home_lock_button")
-                  ) {
-                    Icon(
-                      imageVector = Icons.Default.Lock,
-                      contentDescription = "Lock Screen",
-                      tint = theme.textSecondary,
-                      modifier = Modifier.size(20.dp)
-                    )
-                  }
-        
-                  IconButton(
-                    onClick = { showWidgetSheet = true },
-                    modifier = Modifier.testTag("home_widgets_port_button")
-                  ) {
-                    Icon(
-                      imageVector = Icons.Default.Widgets,
-                      contentDescription = "NOS 3.5 Widgets Port",
-                      tint = accentColor,
-                      modifier = Modifier.size(20.dp)
-                    )
-                  }
-        
-                  IconButton(
-                    onClick = onOpenSettings,
-                    modifier = Modifier.testTag("home_settings_button")
-                  ) {
-                    Icon(
-                      imageVector = Icons.Default.Settings,
-                      contentDescription = "Launcher Settings",
-                      tint = theme.textSecondary
-                    )
-                  }
+        Row(
+          modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp, vertical = 10.dp)
+            .pointerInput(settings.swipeDownNotifications) {
+              if (settings.swipeDownNotifications) {
+                detectVerticalDragGestures { _, dragAmount ->
+                  if (dragAmount > 70f) onSwipeDown()
                 }
               }
+            },
+          horizontalArrangement = Arrangement.SpaceBetween,
+          verticalAlignment = Alignment.CenterVertically
+        ) {
+          Column {
+            Text(
+              text = currentDate.uppercase(),
+              fontFamily = FontFamily.Monospace,
+              fontWeight = FontWeight.Bold,
+              fontSize = 11.sp,
+              color = theme.textPrimary,
+              letterSpacing = 1.5.sp
+            )
+            Spacer(modifier = Modifier.height(2.dp))
+            Text(
+              text = currentTime,
+              fontFamily = FontFamily.Monospace,
+              fontSize = 10.sp,
+              color = theme.textSecondary,
+              letterSpacing = 1.sp
+            )
+          }
+
+          Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(2.dp)
+          ) {
+            Box(
+              modifier = Modifier
+                .size(9.dp)
+                .clip(CircleShape)
+                .background(accentColor)
+            )
+            IconButton(
+              onClick = onOpenSettings,
+              modifier = Modifier.testTag("home_settings_button")
+            ) {
+              Icon(
+                imageVector = Icons.Default.Settings,
+                contentDescription = "Launcher Settings",
+                tint = theme.textSecondary,
+                modifier = Modifier.size(19.dp)
+              )
+            }
+          }
+        }
       }
 
       // Scrollable Home Screen Body (Widgets, Folders, Pinned Apps)
