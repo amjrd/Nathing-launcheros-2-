@@ -588,10 +588,10 @@ fun LauncherSettingsDialog(
             horizontalArrangement = Arrangement.spacedBy(6.dp)
           ) {
             listOf(
-              Triple(LauncherThemeMode.ORIGINAL, "NOTHING 2", Icons.Default.DarkMode),
-              Triple(LauncherThemeMode.MONOCHROME_STUDIO, "MONO", Icons.Default.Layers),
-              Triple(LauncherThemeMode.ATMOSPHERE_PASTEL, "AURA", Icons.Default.Palette),
-              Triple(LauncherThemeMode.GLYPH_RED, "GLYPH", Icons.Default.Radio)
+              Triple(LauncherThemeMode.DARK, "NOTHING 2", Icons.Default.DarkMode),
+              Triple(LauncherThemeMode.LIGHT, "MONO", Icons.Default.Layers),
+              Triple(LauncherThemeMode.RETRO_PASTEL, "AURA", Icons.Default.Palette),
+              Triple(LauncherThemeMode.SYSTEM, "GLYPH", Icons.Default.Radio)
             ).forEach { (mode, label, icon) ->
               val isSelected = settings.themeMode == mode
               Box(
@@ -602,7 +602,7 @@ fun LauncherSettingsDialog(
                   .border(1.dp, if (isSelected) accentColor else theme.border, RoundedCornerShape(10.dp))
                   .clickable {
                     val updatedSettings = when (mode) {
-                      LauncherThemeMode.ORIGINAL -> settings.copy(
+                      LauncherThemeMode.DARK -> settings.copy(
                         themeMode = mode,
                         wallpaperIndex = 0,
                         accentColorIndex = 0,
@@ -614,7 +614,7 @@ fun LauncherSettingsDialog(
                           NosWidgetPortType.MINI_CLUSTER_2X2
                         )
                       )
-                      LauncherThemeMode.MONOCHROME_STUDIO -> settings.copy(
+                      LauncherThemeMode.LIGHT -> settings.copy(
                         themeMode = mode,
                         wallpaperIndex = 1,
                         accentColorIndex = 1,
@@ -625,7 +625,7 @@ fun LauncherSettingsDialog(
                           NosWidgetPortType.CALENDAR_DIGITAL_TIME
                         )
                       )
-                      LauncherThemeMode.ATMOSPHERE_PASTEL -> settings.copy(
+                      LauncherThemeMode.RETRO_PASTEL -> settings.copy(
                         themeMode = mode,
                         wallpaperIndex = 2,
                         accentColorIndex = 1,
@@ -637,7 +637,7 @@ fun LauncherSettingsDialog(
                           NosWidgetPortType.WEATHER_MAIN
                         )
                       )
-                      LauncherThemeMode.GLYPH_RED -> settings.copy(
+                      LauncherThemeMode.SYSTEM -> settings.copy(
                         themeMode = mode,
                         wallpaperIndex = 0,
                         accentColorIndex = 0,
