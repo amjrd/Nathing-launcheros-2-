@@ -5,11 +5,13 @@ import android.content.pm.PackageManager
 import android.graphics.drawable.Drawable
 import android.os.Bundle
 import androidx.activity.ComponentActivity
-import androidx.activity.compose.BackHandler
+import androidx.activity.BackHandler
 import androidx.activity.compose.setContent
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.*
@@ -47,25 +49,33 @@ private fun NathingLauncher() {
 
     BackHandler(enabled = drawer) { drawer = false }
 
-    Box(
-        Modifier
-            .fillMaxSize()
-            .background(Color(0xFF101010))
-            .pointerInput(Unit) {
-                var total = 0f
-                detectVerticalDragGestures(
-                    onVerticalDrag = { _, drag -> total += drag },
-                    onDragEnd = {
-                        if (total < -90f) drawer = true
-                        total = 0f
-                    },
-                    onDragCancel = { total = 0f }
-                )
-            }
-    ) {
+    Box(Modifier.fillMaxSize().background(Color(0xFF101010))) {
         HomeContent(apps.take(4))
-        AnimatedVisibility(visible = drawer, enter = fadeIn(), exit = fadeOut()) {
-            Drawer(apps, onClose = { drawer = false })
+
+        AnimatedVisibility(
+            visible = drawer,
+            enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
+            exit = slideOutVertically(targetOffsetY = { it }) + fadeOut()
+        ) {
+            Drawer(apps = apps, onClose = { drawer = false })
+        }
+
+        if (!drawer) {
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .pointerInput(Unit) {
+                        var total = 0f
+                        detectVerticalDragGestures(
+                            onVerticalDrag = { _, drag -> total += drag },
+                            onDragEnd = {
+                                if (total < -90f) drawer = true
+                                total = 0f
+                            },
+                            onDragCancel = { total = 0f }
+                        )
+                    }
+            )
         }
     }
 }
@@ -81,7 +91,7 @@ private fun HomeContent(dockApps: List<LauncherApp>) {
             Text("02:00", color = Color.White, style = MaterialTheme.typography.displayMedium)
         }
         Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-            Text("Launcher 2.0.0", color = Color.White.copy(alpha = .45f))
+            Text("Launcher 2.1.0", color = Color.White.copy(alpha = .45f))
             Row(
                 Modifier.fillMaxWidth()
                     .background(Color.White.copy(alpha = .07f), RoundedCornerShape(24.dp))
@@ -96,22 +106,62 @@ private fun HomeContent(dockApps: List<LauncherApp>) {
 
 @Composable
 private fun Drawer(apps: List<LauncherApp>, onClose: () -> Unit) {
+    var query by remember { mutableStateOf("") }
+    val filteredApps = remember(query, apps) {
+        if (query.isBlank()) apps
+        else apps.filter { it.label.contains(query, ignoreCase = true) }
+    }
+
     Column(
-        Modifier.fillMaxSize()
+        Modifier
+            .fillMaxSize()
             .background(Color(0xFFF2F2F2))
+            .pointerInput(Unit) {
+                var total = 0f
+                detectVerticalDragGestures(
+                    onVerticalDrag = { _, drag -> total += drag },
+                    onDragEnd = {
+                        if (total > 90f) onClose()
+                        total = 0f
+                    },
+                    onDragCancel = { total = 0f }
+                )
+            }
             .padding(top = 42.dp, start = 18.dp, end = 18.dp)
     ) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            Text("Apps", style = MaterialTheme.typography.headlineMedium, color = Color.Black)
-            Spacer(Modifier.weight(1f))
+            Column(Modifier.weight(1f)) {
+                Text("Apps", style = MaterialTheme.typography.headlineMedium, color = Color.Black)
+                Text(
+                    "${filteredApps.size} applications",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = Color.Black.copy(alpha = .48f)
+                )
+            }
             TextButton(onClick = onClose) { Text("Close") }
         }
+
+        Spacer(Modifier.height(10.dp))
+
+        OutlinedTextField(
+            value = query,
+            onValueChange = { query = it },
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true,
+            shape = RoundedCornerShape(18.dp),
+            placeholder = { Text("Search apps") }
+        )
+
         Spacer(Modifier.height(12.dp))
+
         LazyVerticalGrid(
             columns = GridCells.Fixed(4),
-            contentPadding = PaddingValues(bottom = 24.dp)
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(bottom = 28.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            horizontalArrangement = Arrangement.spacedBy(2.dp)
         ) {
-            items(apps, key = { it.packageName }) { app ->
+            items(filteredApps, key = { it.packageName }) { app ->
                 AppIcon(app, 58.dp, dark = true)
             }
         }
@@ -126,9 +176,9 @@ private fun AppIcon(app: LauncherApp, size: Dp, dark: Boolean = false) {
         modifier = Modifier.width(76.dp)
     ) {
         IconButton(onClick = {
-            context.startActivity(
-                context.packageManager.getLaunchIntentForPackage(app.packageName)
-            )
+            context.packageManager.getLaunchIntentForPackage(app.packageName)?.let {
+                context.startActivity(it)
+            }
         }) {
             Icon(
                 BitmapPainter(app.icon.toBitmap(size.value.toInt(), size.value.toInt()).asImageBitmap()),
