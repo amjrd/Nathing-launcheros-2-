@@ -199,6 +199,7 @@ fun MyApplicationTheme(
         searchPillBg = Color(0xFF19191C)
       )
     }
+    else -> LauncherThemeColors()
   }
 
   CompositionLocalProvider(LocalLauncherTheme provides themeColors) {
