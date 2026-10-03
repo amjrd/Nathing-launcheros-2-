@@ -5,7 +5,7 @@ import android.content.pm.PackageManager
 import android.graphics.drawable.Drawable
 import android.os.Bundle
 import androidx.activity.ComponentActivity
-import androidx.activity.BackHandler
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -51,7 +51,6 @@ private fun NathingLauncher() {
 
     Box(Modifier.fillMaxSize().background(Color(0xFF101010))) {
         HomeContent(apps.take(4))
-
         AnimatedVisibility(
             visible = drawer,
             enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
@@ -59,22 +58,19 @@ private fun NathingLauncher() {
         ) {
             Drawer(apps = apps, onClose = { drawer = false })
         }
-
         if (!drawer) {
             Box(
-                Modifier
-                    .fillMaxSize()
-                    .pointerInput(Unit) {
-                        var total = 0f
-                        detectVerticalDragGestures(
-                            onVerticalDrag = { _, drag -> total += drag },
-                            onDragEnd = {
-                                if (total < -90f) drawer = true
-                                total = 0f
-                            },
-                            onDragCancel = { total = 0f }
-                        )
-                    }
+                Modifier.fillMaxSize().pointerInput(Unit) {
+                    var total = 0f
+                    detectVerticalDragGestures(
+                        onVerticalDrag = { _, drag -> total += drag },
+                        onDragEnd = {
+                            if (total < -90f) drawer = true
+                            total = 0f
+                        },
+                        onDragCancel = { total = 0f }
+                    )
+                }
             )
         }
     }
@@ -108,13 +104,11 @@ private fun HomeContent(dockApps: List<LauncherApp>) {
 private fun Drawer(apps: List<LauncherApp>, onClose: () -> Unit) {
     var query by remember { mutableStateOf("") }
     val filteredApps = remember(query, apps) {
-        if (query.isBlank()) apps
-        else apps.filter { it.label.contains(query, ignoreCase = true) }
+        if (query.isBlank()) apps else apps.filter { it.label.contains(query, ignoreCase = true) }
     }
 
     Column(
-        Modifier
-            .fillMaxSize()
+        Modifier.fillMaxSize()
             .background(Color(0xFFF2F2F2))
             .pointerInput(Unit) {
                 var total = 0f
@@ -140,9 +134,7 @@ private fun Drawer(apps: List<LauncherApp>, onClose: () -> Unit) {
             }
             TextButton(onClick = onClose) { Text("Close") }
         }
-
         Spacer(Modifier.height(10.dp))
-
         OutlinedTextField(
             value = query,
             onValueChange = { query = it },
@@ -151,9 +143,7 @@ private fun Drawer(apps: List<LauncherApp>, onClose: () -> Unit) {
             shape = RoundedCornerShape(18.dp),
             placeholder = { Text("Search apps") }
         )
-
         Spacer(Modifier.height(12.dp))
-
         LazyVerticalGrid(
             columns = GridCells.Fixed(4),
             modifier = Modifier.fillMaxSize(),
@@ -171,14 +161,9 @@ private fun Drawer(apps: List<LauncherApp>, onClose: () -> Unit) {
 @Composable
 private fun AppIcon(app: LauncherApp, size: Dp, dark: Boolean = false) {
     val context = LocalContext.current
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.width(76.dp)
-    ) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.width(76.dp)) {
         IconButton(onClick = {
-            context.packageManager.getLaunchIntentForPackage(app.packageName)?.let {
-                context.startActivity(it)
-            }
+            context.packageManager.getLaunchIntentForPackage(app.packageName)?.let { context.startActivity(it) }
         }) {
             Icon(
                 BitmapPainter(app.icon.toBitmap(size.value.toInt(), size.value.toInt()).asImageBitmap()),
@@ -186,20 +171,12 @@ private fun AppIcon(app: LauncherApp, size: Dp, dark: Boolean = false) {
                 modifier = Modifier.size(size)
             )
         }
-        Text(
-            app.label,
-            color = if (dark) Color.Black else Color.White,
-            maxLines = 1,
-            style = MaterialTheme.typography.labelSmall
-        )
+        Text(app.label, color = if (dark) Color.Black else Color.White, maxLines = 1, style = MaterialTheme.typography.labelSmall)
     }
 }
 
 private fun loadApps(pm: PackageManager): List<LauncherApp> =
-    pm.queryIntentActivities(
-        Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER),
-        PackageManager.MATCH_ALL
-    )
+    pm.queryIntentActivities(Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER), PackageManager.MATCH_ALL)
         .map { LauncherApp(it.loadLabel(pm).toString(), it.activityInfo.packageName, it.loadIcon(pm)) }
         .distinctBy { it.packageName }
         .sortedBy { it.label.lowercase() }
