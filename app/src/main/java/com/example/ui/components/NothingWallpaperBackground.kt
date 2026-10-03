@@ -94,7 +94,7 @@ fun NothingWallpaperBackground(
       2 -> {
         // THEME 3: ATMOSPHERE PASTEL (Screenshot 2: Mint Green & Lavender Aura Glow)
         Image(
-          painter = painterResource(id = R.drawable.img_pastel_wallpaper),
+          painter = painterResource(id = R.drawable.img_monochrome_wallpaper),
           contentDescription = "Atmosphere Pastel Wallpaper",
           modifier = Modifier.fillMaxSize(),
           contentScale = ContentScale.Crop
@@ -171,7 +171,7 @@ fun NothingWallpaperBackground(
           }
           com.example.model.LauncherThemeMode.ATMOSPHERE_PASTEL -> {
             Image(
-              painter = painterResource(id = R.drawable.img_pastel_wallpaper),
+              painter = painterResource(id = R.drawable.img_monochrome_wallpaper),
               contentDescription = "Atmosphere Pastel Wallpaper",
               modifier = Modifier.fillMaxSize(),
               contentScale = ContentScale.Crop
