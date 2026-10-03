@@ -649,6 +649,7 @@ fun LauncherSettingsDialog(
                           NosWidgetPortType.CLOCK_MAIN
                         )
                       )
+                      else -> settings.copy(themeMode = mode)
                     }
                     onUpdateSettings(updatedSettings)
                   }
