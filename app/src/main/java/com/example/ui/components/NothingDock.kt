@@ -49,7 +49,7 @@ fun NothingDock(
   modifier: Modifier = Modifier,
   iconPack: IconPackStyle = IconPackStyle.MONOCHROME,
   accentColor: Color = NothingRed,
-  showSearchBar: Boolean = true
+  showSearchBar: Boolean = false
 ) {
   val theme = LocalLauncherTheme.current
 
@@ -63,20 +63,20 @@ fun NothingDock(
     Row(
       modifier = Modifier
         .fillMaxWidth()
-        .clip(RoundedCornerShape(32.dp))
-        .background(theme.dockBg.copy(alpha = if (theme.isDark) 0.34f else 0.30f))
+        .clip(RoundedCornerShape(24.dp))
+        .background(theme.dockBg.copy(alpha = if (theme.isDark) 0.18f else 0.14f))
         .border(1.dp, theme.border.copy(alpha = 0.38f), RoundedCornerShape(32.dp))
-        .padding(horizontal = 12.dp, vertical = 8.dp),
+        .padding(horizontal = 8.dp, vertical = 6.dp),
       horizontalArrangement = Arrangement.SpaceEvenly,
       verticalAlignment = Alignment.CenterVertically
     ) {
       // 4 Pinned Apps
-      dockApps.take(4).forEach { app ->
+      dockApps.take(5).forEach { app ->
         AppIconItem(
           app = app,
           onClick = { onAppClick(app) },
           onLongClick = { onOpenAppInfo(app) },
-          iconSize = 48.dp,
+          iconSize = 52.dp,
           showLabel = false,
           iconPack = iconPack,
           accentColor = accentColor
