@@ -12,7 +12,7 @@ import org.json.JSONObject
  */
 object LauncherSettingsStore {
   private const val PREFS = "nothing_os_launcher_settings"
-  private const val KEY_SETTINGS = "settings_v1"
+  private const val KEY_SETTINGS = "settings_original_os5_v2"
 
   fun load(context: Context): LauncherSettings {
     val raw = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
