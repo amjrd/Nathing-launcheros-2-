@@ -149,7 +149,7 @@ enum class NosWidgetPortType {
 data class LauncherSettings(
   val iconPack: IconPackStyle = IconPackStyle.MONOCHROME,
   val themeMode: LauncherThemeMode = LauncherThemeMode.DARK, // DARK = Theme Nuit (Image 2), LIGHT = Theme Jour (Image 3)
-  val clockStyle: LauncherClockStyle = LauncherClockStyle.ANALOG, // ANALOG (Image 3) or DIGITAL (Image 2)
+  val clockStyle: LauncherClockStyle = LauncherClockStyle.DIGITAL, // Original OS5 default digital clock
   val accentColorIndex: Int = 0, // 0: Red, 1: White, 2: Orange, 3: Yellow
   val gridColumns: Int = 4,
   val showLabels: Boolean = true,
