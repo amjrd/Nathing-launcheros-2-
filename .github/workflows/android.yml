@@ -1,7 +1,7 @@
 name: Android Build
 on:
   push:
-    branches: [ main ]
+    branches: [ main, original-launcher-base ]
   workflow_dispatch:
 jobs:
   build:
@@ -18,5 +18,5 @@ jobs:
       - run: gradle assembleDebug
       - uses: actions/upload-artifact@v4
         with:
-          name: nathing-launcher-v2.2.0
+          name: nathing-launcher-original-base-v2.3.0
           path: app/build/outputs/apk/debug/app-debug.apk
