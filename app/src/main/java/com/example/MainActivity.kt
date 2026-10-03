@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.Bundle
+import android.os.Build
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
@@ -65,7 +66,11 @@ class MainActivity : ComponentActivity() {
     enableEdgeToEdge()
 
     val filter = IntentFilter(Intent.ACTION_USER_PRESENT)
-    registerReceiver(keyguardReceiver, filter)
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+      registerReceiver(keyguardReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
+    } else {
+      registerReceiver(keyguardReceiver, filter)
+    }
 
     setContent {
       val settings by viewModel.settings.collectAsStateWithLifecycle()
