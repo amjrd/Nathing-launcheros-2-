@@ -5,14 +5,15 @@ plugins {
 }
 
 android {
-    namespace = "com.amjrd.nathinglauncher"
+    namespace = "com.example"
     compileSdk = 35
+
     defaultConfig {
         applicationId = "com.amjrd.nathinglauncher"
         minSdk = 26
         targetSdk = 35
-        versionCode = 20200
-        versionName = "2.2.0"
+        versionCode = 20300
+        versionName = "2.3.0"
     }
 
     compileOptions {
@@ -23,6 +24,10 @@ android {
     kotlinOptions {
         jvmTarget = "17"
     }
+
+    buildFeatures {
+        compose = true
+    }
 }
 
 dependencies {
@@ -31,7 +36,12 @@ dependencies {
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3")
+    implementation("androidx.compose.material:material-icons-core")
+    implementation("androidx.compose.material:material-icons-extended")
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.7")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.7")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7")
     implementation("androidx.core:core-ktx:1.15.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0")
     debugImplementation("androidx.compose.ui:ui-tooling")
 }
