@@ -31,6 +31,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.drawable.toBitmap
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 data class LauncherApp(val label: String, val packageName: String, val icon: Drawable)
 
@@ -78,24 +81,82 @@ private fun NathingLauncher() {
 
 @Composable
 private fun HomeContent(dockApps: List<LauncherApp>) {
+    val time = remember { mutableStateOf(currentTime()) }
+
+    LaunchedEffect(Unit) {
+        while (true) {
+            time.value = currentTime()
+            kotlinx.coroutines.delay(1000)
+        }
+    }
+
     Column(
-        Modifier.fillMaxSize().padding(horizontal = 22.dp, vertical = 34.dp),
+        Modifier.fillMaxSize().padding(horizontal = 20.dp, vertical = 30.dp),
         verticalArrangement = Arrangement.SpaceBetween
     ) {
-        Column {
-            Text("NATHING", color = Color.White.copy(alpha = .75f), style = MaterialTheme.typography.labelLarge)
-            Text("02:00", color = Color.White, style = MaterialTheme.typography.displayMedium)
+        Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+            Text(
+                "NATHING",
+                color = Color.White.copy(alpha = .62f),
+                style = MaterialTheme.typography.labelLarge
+            )
+
+            Text(
+                time.value,
+                color = Color.White,
+                style = MaterialTheme.typography.displayLarge
+            )
+
+            HomeWidget(
+                title = "TODAY",
+                value = currentDate(),
+                modifier = Modifier.fillMaxWidth()
+            )
         }
-        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-            Text("Launcher 2.1.1", color = Color.White.copy(alpha = .45f))
-            Row(
-                Modifier.fillMaxWidth()
-                    .background(Color.White.copy(alpha = .07f), RoundedCornerShape(24.dp))
-                    .padding(10.dp),
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                dockApps.forEach { AppIcon(it, 54.dp) }
-            }
+
+        Dock(dockApps)
+    }
+}
+
+@Composable
+private fun HomeWidget(title: String, value: String, modifier: Modifier = Modifier) {
+    Column(
+        modifier
+            .background(Color.White.copy(alpha = .055f), RoundedCornerShape(22.dp))
+            .padding(horizontal = 18.dp, vertical = 15.dp)
+    ) {
+        Text(
+            title,
+            color = Color.White.copy(alpha = .42f),
+            style = MaterialTheme.typography.labelMedium
+        )
+        Spacer(Modifier.height(4.dp))
+        Text(
+            value,
+            color = Color.White.copy(alpha = .9f),
+            style = MaterialTheme.typography.titleMedium
+        )
+    }
+}
+
+@Composable
+private fun Dock(dockApps: List<LauncherApp>) {
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Text(
+            "DOCK",
+            color = Color.White.copy(alpha = .28f),
+            style = MaterialTheme.typography.labelSmall,
+            modifier = Modifier.padding(start = 6.dp)
+        )
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .background(Color.White.copy(alpha = .07f), RoundedCornerShape(26.dp))
+                .padding(horizontal = 8.dp, vertical = 7.dp),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            dockApps.forEach { AppIcon(it, 52.dp) }
         }
     }
 }
@@ -209,3 +270,9 @@ private fun loadApps(pm: PackageManager): List<LauncherApp> =
         .map { LauncherApp(it.loadLabel(pm).toString(), it.activityInfo.packageName, it.loadIcon(pm)) }
         .distinctBy { it.packageName }
         .sortedBy { it.label.lowercase() }
+
+private fun currentTime(): String =
+    SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date())
+
+private fun currentDate(): String =
+    SimpleDateFormat("EEEE, d MMMM", Locale.getDefault()).format(Date())
