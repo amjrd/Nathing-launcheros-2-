@@ -115,18 +115,26 @@ val LocalLauncherTheme = staticCompositionLocalOf {
 
 @Composable
 fun MyApplicationTheme(
-  themeMode: LauncherThemeMode = LauncherThemeMode.ORIGINAL,
+  themeMode: LauncherThemeMode = LauncherThemeMode.DARK,
   darkTheme: Boolean = isSystemInDarkTheme(),
   dynamicColor: Boolean = false,
   content: @Composable () -> Unit
 ) {
-  val colorScheme = when (themeMode) {
+  val resolvedTheme = when (themeMode) {
+    LauncherThemeMode.DARK, LauncherThemeMode.ORIGINAL -> LauncherThemeMode.ORIGINAL
+    LauncherThemeMode.LIGHT, LauncherThemeMode.MONOCHROME_STUDIO -> LauncherThemeMode.MONOCHROME_STUDIO
+    LauncherThemeMode.RETRO_PASTEL, LauncherThemeMode.ATMOSPHERE_PASTEL -> LauncherThemeMode.ATMOSPHERE_PASTEL
+    LauncherThemeMode.GLYPH_RED -> LauncherThemeMode.GLYPH_RED
+    LauncherThemeMode.SYSTEM -> if (darkTheme) LauncherThemeMode.ORIGINAL else LauncherThemeMode.MONOCHROME_STUDIO
+  }
+  val colorScheme = when (resolvedTheme) {
     LauncherThemeMode.ORIGINAL -> NothingDarkColorScheme
     LauncherThemeMode.MONOCHROME_STUDIO -> NothingLightColorScheme
     LauncherThemeMode.ATMOSPHERE_PASTEL -> NothingRetroColorScheme
     LauncherThemeMode.GLYPH_RED -> NothingGlyphRedColorScheme
+    else -> NothingDarkColorScheme
   }
-  val themeColors = when (themeMode) {
+  val themeColors = when (resolvedTheme) {
     LauncherThemeMode.ORIGINAL -> {
       LauncherThemeColors(
         isDark = true,
