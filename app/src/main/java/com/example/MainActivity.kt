@@ -241,6 +241,10 @@ fun NothingLauncherApp(
             LauncherThemeMode.LIGHT -> LauncherThemeMode.RETRO_PASTEL
             LauncherThemeMode.RETRO_PASTEL -> LauncherThemeMode.DARK
             LauncherThemeMode.SYSTEM -> LauncherThemeMode.DARK
+            LauncherThemeMode.ORIGINAL -> LauncherThemeMode.LIGHT
+            LauncherThemeMode.MONOCHROME_STUDIO -> LauncherThemeMode.RETRO_PASTEL
+            LauncherThemeMode.ATMOSPHERE_PASTEL -> LauncherThemeMode.GLYPH_RED
+            LauncherThemeMode.GLYPH_RED -> LauncherThemeMode.DARK
           }
           viewModel.updateSettings(settings.copy(themeMode = newTheme))
         },
