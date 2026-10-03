@@ -325,7 +325,7 @@ fun HomeScreen(
                         LauncherThemeMode.ORIGINAL -> Icons.Default.DarkMode
                         LauncherThemeMode.MONOCHROME_STUDIO -> Icons.Default.LightMode
                         LauncherThemeMode.ATMOSPHERE_PASTEL -> Icons.Default.Palette
-                        LauncherThemeMode.GLYPH_RED -> Icons.Default.BrightnessHigh
+                        LauncherThemeMode.GLYPH_RED -> Icons.Default.Brightness7
                       },
                       contentDescription = "Toggle Theme Jour / Nuit / Retro",
                       tint = if (settings.themeMode != LauncherThemeMode.DARK) accentColor else theme.textSecondary,
