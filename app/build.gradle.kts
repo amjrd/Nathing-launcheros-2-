@@ -11,14 +11,14 @@ plugins {
 
 android {
   namespace = "com.example"
-  compileSdk { version = release(36) { minorApiLevel = 1 } }
+  compileSdk = 37
 
   defaultConfig {
     applicationId = "com.example.nothinglauncher"
     minSdk = 24
-    targetSdk = 36
-    versionCode = 7
-    versionName = "1.6.0"
+    targetSdk = 37
+    versionCode = 8
+    versionName = "1.7.0"
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
   }
