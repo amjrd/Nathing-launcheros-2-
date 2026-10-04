@@ -203,6 +203,7 @@ private fun HomeContent(activity: MainActivity, dockApps: List<LauncherApp>, wid
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun HomeWidget(title: String, value: String, modifier: Modifier = Modifier, onClick: (() -> Unit)? = null) {
     Column(
