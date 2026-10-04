@@ -107,6 +107,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 private fun NathingLauncher() {
     val context = LocalContext.current
+    val activity = context as MainActivity
     var drawer by remember { mutableStateOf(false) }
     var google by remember { mutableStateOf(false) }
     var lock by remember { mutableStateOf(false) }
@@ -116,7 +117,7 @@ private fun NathingLauncher() {
     BackHandler(enabled = drawer || google || lock || menu) { when { menu -> menu = false; lock -> lock = false; google -> google = false; drawer -> drawer = false } }
 
     Box(Modifier.fillMaxSize().background(Color(0xFF101010))) {
-        HomeContent(apps.take(4), widgetId, onAddWidget = { addSystemWidget() }, onWidgetInfo = { openWidgetInfo() }, onRemoveWidget = { removeSystemWidget() }, onMenu = { menu = true }, onLock = { lock = true })
+        HomeContent(activity, apps.take(4), activity.widgetId, onAddWidget = { activity.addSystemWidget() }, onWidgetInfo = { activity.openWidgetInfo() }, onRemoveWidget = { activity.removeSystemWidget() }, onMenu = { menu = true }, onLock = { lock = true })
         AnimatedVisibility(
             visible = drawer,
             enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
@@ -144,15 +145,15 @@ private fun NathingLauncher() {
     if (lock) LockPage(onUnlock = { lock = false })
     if (menu) LauncherMenu(
         onDismiss = { menu = false },
-        onWallpaper = { menu = false; openWallpaperPicker() },
-        onNotifications = { menu = false; openNotificationAccess() },
-        onAddWidget = { menu = false; addSystemWidget() },
+        onWallpaper = { menu = false; activity.openWallpaperPicker() },
+        onNotifications = { menu = false; activity.openNotificationAccess() },
+        onAddWidget = { menu = false; activity.addSystemWidget() },
         onLock = { menu = false; lock = true }
     )
 }
 
 @Composable
-private fun HomeContent(dockApps: List<LauncherApp>, widgetId: Int, onAddWidget: () -> Unit, onWidgetInfo: () -> Unit, onRemoveWidget: () -> Unit, onMenu: () -> Unit, onLock: () -> Unit) {
+private fun HomeContent(activity: MainActivity, dockApps: List<LauncherApp>, widgetId: Int, onAddWidget: () -> Unit, onWidgetInfo: () -> Unit, onRemoveWidget: () -> Unit, onMenu: () -> Unit, onLock: () -> Unit) {
     val time = remember { mutableStateOf(currentTime()) }
 
     LaunchedEffect(Unit) {
@@ -181,7 +182,7 @@ private fun HomeContent(dockApps: List<LauncherApp>, widgetId: Int, onAddWidget:
                 AndroidView(
                     factory = { ctx ->
                         val info = AppWidgetManager.getInstance(ctx).getAppWidgetInfo(widgetId)
-                        widgetHost.createView(ctx, widgetId, info)
+                        activity.widgetHost.createView(ctx, widgetId, info)
                     },
                     modifier = Modifier.fillMaxWidth().heightIn(min = 100.dp, max = 300.dp)
                 )
