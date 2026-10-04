@@ -4,15 +4,20 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.drawable.Drawable
 import android.os.Bundle
+import android.appwidget.AppWidgetHost
+import android.appwidget.AppWidgetManager
+import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -27,6 +32,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -38,9 +44,63 @@ import java.util.Locale
 data class LauncherApp(val label: String, val packageName: String, val icon: Drawable)
 
 class MainActivity : ComponentActivity() {
+    lateinit var widgetHost: AppWidgetHost
+    lateinit var widgetManager: AppWidgetManager
+    var widgetId: Int = AppWidgetManager.INVALID_APPWIDGET_ID
+
+    private val pickWidget = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode == RESULT_OK) {
+            widgetId = result.data?.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, AppWidgetManager.INVALID_APPWIDGET_ID)
+                ?: AppWidgetManager.INVALID_APPWIDGET_ID
+            if (widgetId != AppWidgetManager.INVALID_APPWIDGET_ID) {
+                getPreferences(MODE_PRIVATE).edit().putInt("widget_id", widgetId).apply()
+            }
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        widgetManager = AppWidgetManager.getInstance(this)
+        widgetHost = AppWidgetHost(this, 0x4E4F53)
+        widgetHost.startListening()
+        widgetId = getPreferences(MODE_PRIVATE).getInt("widget_id", AppWidgetManager.INVALID_APPWIDGET_ID)
         setContent { NathingLauncher() }
+    }
+
+    override fun onDestroy() {
+        widgetHost.stopListening()
+        super.onDestroy()
+    }
+
+    fun addSystemWidget() {
+        val id = widgetHost.allocateAppWidgetId()
+        widgetId = id
+        pickWidget.launch(Intent(AppWidgetManager.ACTION_APPWIDGET_PICK).putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, id))
+    }
+
+    fun removeSystemWidget() {
+        if (widgetId != AppWidgetManager.INVALID_APPWIDGET_ID) widgetHost.deleteAppWidgetId(widgetId)
+        getPreferences(MODE_PRIVATE).edit().remove("widget_id").apply()
+        widgetId = AppWidgetManager.INVALID_APPWIDGET_ID
+    }
+
+    fun openWidgetInfo() {
+        val info = widgetManager.getAppWidgetInfo(widgetId) ?: return
+        openAppInfo(info.provider.packageName)
+    }
+
+    fun openAppInfo(packageName: String) {
+        startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+            data = android.net.Uri.parse("package:$packageName")
+        })
+    }
+
+    fun openWallpaperPicker() {
+        runCatching { startActivity(Intent(Intent.ACTION_SET_WALLPAPER)) }
+    }
+
+    fun openNotificationAccess() {
+        runCatching { startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)) }
     }
 }
 
@@ -48,12 +108,15 @@ class MainActivity : ComponentActivity() {
 private fun NathingLauncher() {
     val context = LocalContext.current
     var drawer by remember { mutableStateOf(false) }
+    var google by remember { mutableStateOf(false) }
+    var lock by remember { mutableStateOf(false) }
+    var menu by remember { mutableStateOf(false) }
     val apps = remember { loadApps(context.packageManager) }
 
-    BackHandler(enabled = drawer) { drawer = false }
+    BackHandler(enabled = drawer || google || lock || menu) { when { menu -> menu = false; lock -> lock = false; google -> google = false; drawer -> drawer = false } }
 
     Box(Modifier.fillMaxSize().background(Color(0xFF101010))) {
-        HomeContent(apps.take(4))
+        HomeContent(apps.take(4), widgetId, onAddWidget = { addSystemWidget() }, onWidgetInfo = { openWidgetInfo() }, onRemoveWidget = { removeSystemWidget() }, onMenu = { menu = true }, onLock = { lock = true })
         AnimatedVisibility(
             visible = drawer,
             enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
@@ -61,7 +124,7 @@ private fun NathingLauncher() {
         ) {
             Drawer(apps = apps, onClose = { drawer = false })
         }
-        if (!drawer) {
+        if (!drawer && !google && !lock && !menu) {
             Box(
                 Modifier.fillMaxSize().pointerInput(Unit) {
                     var total = 0f
@@ -77,10 +140,19 @@ private fun NathingLauncher() {
             )
         }
     }
+    if (google) GooglePage(onClose = { google = false })
+    if (lock) LockPage(onUnlock = { lock = false })
+    if (menu) LauncherMenu(
+        onDismiss = { menu = false },
+        onWallpaper = { menu = false; openWallpaperPicker() },
+        onNotifications = { menu = false; openNotificationAccess() },
+        onAddWidget = { menu = false; addSystemWidget() },
+        onLock = { menu = false; lock = true }
+    )
 }
 
 @Composable
-private fun HomeContent(dockApps: List<LauncherApp>) {
+private fun HomeContent(dockApps: List<LauncherApp>, widgetId: Int, onAddWidget: () -> Unit, onWidgetInfo: () -> Unit, onRemoveWidget: () -> Unit, onMenu: () -> Unit, onLock: () -> Unit) {
     val time = remember { mutableStateOf(currentTime()) }
 
     LaunchedEffect(Unit) {
@@ -101,17 +173,29 @@ private fun HomeContent(dockApps: List<LauncherApp>) {
                 style = MaterialTheme.typography.labelLarge
             )
 
-            Text(
-                time.value,
-                color = Color.White,
-                style = MaterialTheme.typography.displayLarge
-            )
-
-            HomeWidget(
-                title = "TODAY",
-                value = currentDate(),
-                modifier = Modifier.fillMaxWidth()
-            )
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                Text(time.value, color = Color.White, style = MaterialTheme.typography.displayLarge)
+                TextButton(onClick = onMenu) { Text("⋮", color = Color.White) }
+            }
+            if (widgetId != AppWidgetManager.INVALID_APPWIDGET_ID) {
+                AndroidView(
+                    factory = { ctx ->
+                        val info = AppWidgetManager.getInstance(ctx).getAppWidgetInfo(widgetId)
+                        widgetHost.createView(ctx, widgetId, info)
+                    },
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 100.dp, max = 300.dp)
+                )
+                Row {
+                    TextButton(onClick = onWidgetInfo) { Text("APP INFO") }
+                    TextButton(onClick = onRemoveWidget) { Text("REMOVE") }
+                }
+            } else {
+                HomeWidget("SYSTEM WIDGET", "ADD REAL ANDROID WIDGET", Modifier.fillMaxWidth(), onAddWidget)
+            }
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                HomeWidget("TOOLS", "ADD / EDIT", Modifier.weight(1f), onAddWidget)
+                HomeWidget("MEDIA", "SYSTEM", Modifier.weight(1f), onAddWidget)
+            }
         }
 
         Dock(dockApps)
@@ -119,9 +203,10 @@ private fun HomeContent(dockApps: List<LauncherApp>) {
 }
 
 @Composable
-private fun HomeWidget(title: String, value: String, modifier: Modifier = Modifier) {
+private fun HomeWidget(title: String, value: String, modifier: Modifier = Modifier, onClick: (() -> Unit)? = null) {
     Column(
         modifier
+            .combinedClickable(onClick = { onClick?.invoke() }, onLongClick = { onClick?.invoke() })
             .background(Color.White.copy(alpha = .055f), RoundedCornerShape(22.dp))
             .padding(horizontal = 18.dp, vertical = 15.dp)
     ) {
@@ -276,3 +361,52 @@ private fun currentTime(): String =
 
 private fun currentDate(): String =
     SimpleDateFormat("EEEE, d MMMM", Locale.getDefault()).format(Date())
+
+@Composable
+private fun GooglePage(onClose: () -> Unit) {
+    Box(Modifier.fillMaxSize().background(Color(0xFF101010)), contentAlignment = Alignment.Center) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text("GOOGLE", color = Color.White, style = MaterialTheme.typography.headlineMedium)
+            Spacer(Modifier.height(16.dp))
+            Button(onClick = { }) { Text("OPEN GOOGLE") }
+            TextButton(onClick = onClose) { Text("BACK") }
+        }
+    }
+}
+
+@Composable
+private fun LockPage(onUnlock: () -> Unit) {
+    Box(Modifier.fillMaxSize().background(Color.Black), contentAlignment = Alignment.Center) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(currentTime(), color = Color.White, style = MaterialTheme.typography.displayLarge)
+            Text(currentDate(), color = Color.White.copy(alpha = .6f))
+            Spacer(Modifier.height(32.dp))
+            Text("NOTHING OS", color = Color.White.copy(alpha = .5f))
+            Spacer(Modifier.height(32.dp))
+            Button(onClick = onUnlock) { Text("UNLOCK") }
+        }
+    }
+}
+
+@Composable
+private fun LauncherMenu(
+    onDismiss: () -> Unit,
+    onWallpaper: () -> Unit,
+    onNotifications: () -> Unit,
+    onAddWidget: () -> Unit,
+    onLock: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("NOTHING LAUNCHER") },
+        text = {
+            Column {
+                TextButton(onClick = onAddWidget, modifier = Modifier.fillMaxWidth()) { Text("SYSTEM WIDGETS") }
+                TextButton(onClick = onWallpaper, modifier = Modifier.fillMaxWidth()) { Text("WALLPAPER") }
+                TextButton(onClick = onNotifications, modifier = Modifier.fillMaxWidth()) { Text("NOTIFICATIONS") }
+                TextButton(onClick = onLock, modifier = Modifier.fillMaxWidth()) { Text("LOCKSCREEN") }
+            }
+        },
+        confirmButton = { TextButton(onClick = onDismiss) { Text("CLOSE") } }
+    )
+}
