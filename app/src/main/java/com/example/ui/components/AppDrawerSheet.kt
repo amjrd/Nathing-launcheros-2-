@@ -5,6 +5,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -432,9 +433,13 @@ fun AppDrawerSheet(
       }
 
       // Drawer Content: Grid + Fast-Scroll Alphabet Sidebar
-      Row(modifier = Modifier.fillMaxSize()) {
+      // Nothing Launcher 4.0.20 carries both 4-column and 5-column drawer resources.
+      // Keep the existing drawer, but adapt the column count to available width.
+      BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+        val drawerColumns = if (maxWidth >= 360.dp) 5 else 4
+        Row(modifier = Modifier.fillMaxSize()) {
         LazyVerticalGrid(
-          columns = GridCells.Fixed(4),
+          columns = GridCells.Fixed(drawerColumns),
           state = gridState,
           verticalArrangement = Arrangement.spacedBy(16.dp),
           horizontalArrangement = Arrangement.spacedBy(8.dp),
