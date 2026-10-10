@@ -3,6 +3,9 @@ name: Nothing Launcher APK analysis
 on:
   push:
     branches: [ main, nothing-launcher-apk-port ]
+    paths:
+      - 'originals/*.apk'
+      - '.github/workflows/android.yml'
   workflow_dispatch:
 
 jobs:
